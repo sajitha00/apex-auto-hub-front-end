@@ -98,7 +98,11 @@ export default function Customize() {
         totalPrice: calculateTotalPrice(),
       };
 
-      const response = await fetch("http://localhost:5000/api/builds", {
+      // Get API base URL from environment variable or fallback to localhost
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+      const response = await fetch(`${API_BASE_URL}/api/builds`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

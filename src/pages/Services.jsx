@@ -29,23 +29,26 @@ export default function Services() {
     notes: "",
   });
 
+  // Get API base URL from environment variable or fallback to localhost
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/services`);
+        if (response.ok) {
+          const data = await response.json();
+          setServices(data);
+        }
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchServices();
   }, []);
-
-  const fetchServices = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/services");
-      if (response.ok) {
-        const data = await response.json();
-        setServices(data);
-      }
-    } catch (error) {
-      console.error("Error fetching services:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getIcon = (category) => {
     switch (category) {
@@ -91,7 +94,7 @@ export default function Services() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/services/${selectedService._id}/book`,
+        `${API_BASE_URL}/api/services/${selectedService._id}/book`,
         {
           method: "POST",
           headers: {
