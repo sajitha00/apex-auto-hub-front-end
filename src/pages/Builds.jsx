@@ -26,32 +26,32 @@ export default function Builds() {
     selectedParts: [],
   });
 
+  // Get API base URL from environment variable or fallback to localhost
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   useEffect(() => {
-    fetchBuilds();
-  }, []);
-
-  const fetchBuilds = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:5000/api/builds/${user?.id}`,
-        {
+    const fetchBuilds = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/builds/${user?.id}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setBuilds(data);
         }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setBuilds(data);
+      } catch (error) {
+        console.error("Error fetching builds:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching builds:", error);
-    } finally {
-      setLoading(false);
+    };
+
+    if (user?.id) {
+      fetchBuilds();
     }
-  };
+  }, [user?.id]);
 
   const handleDelete = async (buildId) => {
     if (!window.confirm("Are you sure you want to delete this build?")) {
@@ -59,16 +59,12 @@ export default function Builds() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:5000/api/builds/${buildId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/builds/${buildId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       if (response.ok) {
         setBuilds(builds.filter((build) => build._id !== buildId));
@@ -94,23 +90,17 @@ export default function Builds() {
 
   const handleSaveEdit = async (buildId) => {
     try {
-      const token = localStorage.getItem("token");
-      const currentBuild = builds.find((build) => build._id === buildId);
-
-      const response = await fetch(
-        `http://localhost:5000/api/builds/${buildId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            ...editForm,
-            totalPrice: currentBuild?.totalPrice || 0,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/builds/${buildId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          ...editForm,
+          totalPrice: currentBuild?.totalPrice || 0,
+        }),
+      });
 
       if (response.ok) {
         const updatedBuild = await response.json();
